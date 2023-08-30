@@ -66,8 +66,8 @@ jobs:
           ls
           ./gradlew build
           # Copy the built WAR file to Tomcat's webapps directory
-          mkdir -p /usr/local/tomcat/webapps/vss/
-          cp app/build/libs/app-1.0.war /usr/local/tomcat/webapps/vss/
+          #mkdir -p /usr/local/tomcat/webapps/vss/
+          cp app/build/libs/app-1.0.war /usr/local/tomcat/webapps/
 
       - name: Run tests
         run: |
