@@ -15,7 +15,7 @@ jobs:
           POSTGRES_DB: postgres
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: testpassword
-        options: --net=host >-
+        options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
@@ -63,7 +63,7 @@ jobs:
           # Copy the built WAR file to Tomcat's webapps directory
           #mkdir -p /usr/local/tomcat/webapps/vss/
 
-          docker run -d --net=host --name tomcat-container -p 8080:8080 tomcat:latest
+          docker run -d --network=host --name tomcat-container -p 8080:8080 tomcat:latest
           docker cp app/build/libs/app-1.0.war tomcat-container:/usr/local/tomcat/webapps/vss.war
           # scp app/build/libs/app-1.0.war tomcat:/usr/local/tomcat/webapps/vss.war
           # cp app/build/libs/app-1.0.war /usr/local/tomcat/webapps/
