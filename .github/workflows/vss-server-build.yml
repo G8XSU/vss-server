@@ -22,57 +22,43 @@ jobs:
           --health-retries 5
 
     steps:
-      #      - name: Checkout code
-      #        uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: jooq-up
+
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
           distribution: 'corretto'
           java-version: '17'
+
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: release-candidate
+
       - name: Create database table
         run: |
-          # sudo -u postgres service postgresql start &
-          # Wait for PostgreSQL to be ready
-          # sleep 3
-
-          # sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'testpassword';"
-          # export PGPASSWORD="testpassword"
-
-          psql -h localhost -U postgres -d postgres -c "CREATE TABLE vss_db (store_id character varying(120) NOT NULL CHECK (store_id <> ''), key character varying(120) NOT NULL, value bytea NULL, version bigint NOT NULL, PRIMARY KEY (store_id, key));"
+          #psql -h localhost -U postgres -d postgres -c "CREATE TABLE vss_db (store_id character varying(120) NOT NULL CHECK (store_id <> ''), key character varying(120) NOT NULL, value bytea NULL, version bigint NOT NULL, PRIMARY KEY (store_id, key));"
+          psql -h localhost -U postgres -d postgres -f ./vss-server/app/src/main/java/org/vss/impl/postgres/sql/v0_create_vss_db.sql
         env:
           PGPASSWORD: testpassword
 
       - name: Build and deploy service
         run: |
-          git clone --branch jooq-up https://github.com/G8XSU/vss-server.git
-          #git clone https://github.com/lightningdevkit/vss-server.git
-          cd vss-server
           java -version
-          export PGPASSWORD="testpassword"
-          # sudo add-apt-repository ppa:cwchien/gradle -y
-          # sudo apt update && sudo apt install gradle-7.4.2
           gradle --version
+
+          cd vss-server
           gradle wrapper --gradle-version 8.1.1
           ./gradlew --version
-          ls
           ./gradlew build
-          # Copy the built WAR file to Tomcat's webapps directory
-          #mkdir -p /usr/local/tomcat/webapps/vss/
 
-          docker run -d --network=host --name tomcat-container -p 8080:8080 tomcat:latest
-          docker cp app/build/libs/app-1.0.war tomcat-container:/usr/local/tomcat/webapps/vss.war
-          # scp app/build/libs/app-1.0.war tomcat:/usr/local/tomcat/webapps/vss.war
-          # cp app/build/libs/app-1.0.war /usr/local/tomcat/webapps/
-
+          docker run -d --network=host --name tomcat tomcat:latest
+          docker cp app/build/libs/app-1.0.war tomcat:/usr/local/tomcat/webapps/vss.war
       - name: Run tests
         run: |
-          # Run your test cases here
-          # You can use curl or other tools to test your deployed service
-          sleep 10
           curl --request POST --data-binary "s" http://localhost:8080/vss/getObject
 
       - name: Cleanup
