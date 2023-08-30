@@ -34,6 +34,10 @@ jobs:
         with:
           distribution: 'corretto'
           java-version: '17'
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: release-candidate
       - name: Create database table
         run: |
           # sudo -u postgres service postgresql start &
@@ -46,6 +50,7 @@ jobs:
           psql -h localhost -U postgres -d postgres -c "CREATE TABLE vss_db (store_id character varying(120) NOT NULL CHECK (store_id <> ''), key character varying(120) NOT NULL, value bytea NULL, version bigint NOT NULL, PRIMARY KEY (store_id, key));"
         env:
           PGPASSWORD: testpassword
+
       - name: Build and deploy service
         run: |
           git clone --branch jooq-up https://github.com/G8XSU/vss-server.git
@@ -53,8 +58,8 @@ jobs:
           cd vss-server
           java -version
           export PGPASSWORD="testpassword"
-          sudo add-apt-repository ppa:cwchien/gradle -y
-          sudo apt update && sudo apt install gradle-7.4.2
+          # sudo add-apt-repository ppa:cwchien/gradle -y
+          # sudo apt update && sudo apt install gradle-7.4.2
           gradle --version
           gradle wrapper --gradle-version 8.1.1
           ./gradlew --version
