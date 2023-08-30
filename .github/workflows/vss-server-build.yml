@@ -41,10 +41,11 @@ jobs:
           # sleep 3
 
           # sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'testpassword';"
-          export PGPASSWORD="testpassword"
+          # export PGPASSWORD="testpassword"
 
-          sudo -u postgres psql -d postgres -c "CREATE TABLE vss_db (store_id character varying(120) NOT NULL CHECK (store_id <> ''), key character varying(120) NOT NULL, value bytea NULL, version bigint NOT NULL, PRIMARY KEY (store_id, key));"
-
+          psql -d postgres -c "CREATE TABLE vss_db (store_id character varying(120) NOT NULL CHECK (store_id <> ''), key character varying(120) NOT NULL, value bytea NULL, version bigint NOT NULL, PRIMARY KEY (store_id, key));"
+        env:
+          PGPASSWORD: testpassword
       - name: Build and deploy service
         run: |
           git clone --branch jooq-up https://github.com/G8XSU/vss-server.git
