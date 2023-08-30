@@ -1,0 +1,75 @@
+name: vss-server-build
+
+on: [push]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        ports:
+          - 5432:5432
+        environment:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: testpassword
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      tomcat:
+        image: tomcat:latest
+        ports:
+          - 8080:8080
+        depends-on:
+          - postgres
+
+    steps:
+      #      - name: Checkout code
+      #        uses: actions/checkout@v2
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+      - name: Create database table
+        run: |
+          sudo -u postgres service postgresql start &
+          # Wait for PostgreSQL to be ready
+          sleep 3
+
+          sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'testpassword';"
+          export PGPASSWORD="testpassword"
+
+          sudo -u postgres psql -d postgres -c "CREATE TABLE vss_db (store_id character varying(120) NOT NULL CHECK (store_id <> ''), key character varying(120) NOT NULL, value bytea NULL, version bigint NOT NULL, PRIMARY KEY (store_id, key));"
+
+      - name: Build and deploy service
+        run: |
+          git clone --branch jooq-up https://github.com/G8XSU/vss-server.git
+          #git clone https://github.com/lightningdevkit/vss-server.git
+          cd vss-server
+          java -version
+          export PGPASSWORD="testpassword"
+          sudo add-apt-repository ppa:cwchien/gradle -y
+          sudo apt update && sudo apt install gradle-7.4.2
+          gradle --version
+          gradle wrapper --gradle-version 8.1.1
+          ./gradlew --version
+          ls
+          ./gradlew build -x test
+          # Copy the built WAR file to Tomcat's webapps directory
+          cp app/build/libs/app-1.0.war /usr/local/tomcat/webapps/vss/
+
+      - name: Run tests
+        run: |
+          # Run your test cases here
+          # You can use curl or other tools to test your deployed service
+          curl --request POST --data-binary "s" http://localhost:8080/vss/getObject
+
+      - name: Cleanup
+        run: |
+          # Cleanup after tests if needed
