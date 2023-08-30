@@ -40,8 +40,6 @@ jobs:
 
       - name: Create database table
         run: |
-          #psql -h localhost -U postgres -d postgres -c "CREATE TABLE vss_db (store_id character varying(120) NOT NULL CHECK (store_id <> ''), key character varying(120) NOT NULL, value bytea NULL, version bigint NOT NULL, PRIMARY KEY (store_id, key));"
-          ls
           psql -h localhost -U postgres -d postgres -f ./app/src/main/java/org/vss/impl/postgres/sql/v0_create_vss_db.sql
         env:
           PGPASSWORD: testpassword
@@ -51,7 +49,6 @@ jobs:
           java -version
           gradle --version
 
-          cd vss-server
           gradle wrapper --gradle-version 8.1.1
           ./gradlew --version
           ./gradlew build
