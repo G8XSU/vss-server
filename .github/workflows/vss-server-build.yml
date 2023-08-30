@@ -59,8 +59,9 @@ jobs:
           gradle wrapper --gradle-version 8.1.1
           ./gradlew --version
           ls
-          ./gradlew build -x test
+          ./gradlew build
           # Copy the built WAR file to Tomcat's webapps directory
+          mkdir -p /usr/local/tomcat/webapps/vss/
           cp app/build/libs/app-1.0.war /usr/local/tomcat/webapps/vss/
 
       - name: Run tests
