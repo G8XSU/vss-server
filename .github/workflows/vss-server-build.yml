@@ -21,11 +21,6 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-      tomcat:
-        image: tomcat:latest
-        ports:
-          - 8080:8080
-
     steps:
       #      - name: Checkout code
       #        uses: actions/checkout@v2
@@ -67,14 +62,17 @@ jobs:
           ./gradlew build
           # Copy the built WAR file to Tomcat's webapps directory
           #mkdir -p /usr/local/tomcat/webapps/vss/
-          #docker cp app/build/libs/app-1.0.war tomcat:/usr/local/tomcat/webapps/vss.war
-          scp app/build/libs/app-1.0.war tomcat:/usr/local/tomcat/webapps/vss.war
+
+          docker run -d --name tomcat-container -p 8080:8080 tomcat:latest
+          docker cp app/build/libs/app-1.0.war tomcat-container:/usr/local/tomcat/webapps/vss.war
+          # scp app/build/libs/app-1.0.war tomcat:/usr/local/tomcat/webapps/vss.war
           # cp app/build/libs/app-1.0.war /usr/local/tomcat/webapps/
 
       - name: Run tests
         run: |
           # Run your test cases here
           # You can use curl or other tools to test your deployed service
+          sleep 10
           curl --request POST --data-binary "s" http://localhost:8080/vss/getObject
 
       - name: Cleanup
