@@ -21,6 +21,10 @@ repositories {
   mavenCentral()
 }
 
+war {
+  archiveFileName = 'vss.war'
+}
+
 idea {
   module {
     generatedSourceDirs.add(file("build/generated/proto/main"))
