@@ -9,6 +9,7 @@ buildscript {
   ext.guiceVersion = '5.1.0'
 }
 
+
 plugins {
   id 'java'
   id 'com.google.protobuf' version "${protobufPlugInVersion}"
@@ -17,12 +18,12 @@ plugins {
   id 'nu.studer.jooq' version '8.2.1'
 }
 
-repositories {
-  mavenCentral()
-}
-
 war {
   archiveFileName = 'vss.war'
+}
+
+repositories {
+  mavenCentral()
 }
 
 idea {
