@@ -32,7 +32,9 @@ jobs:
         with:
           distribution: 'corretto'
           java-version: '17'
-
+      - name: Start Tomcat
+        run: |
+          docker run -d --network=host --name tomcat tomcat:latest
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
         with:
@@ -44,7 +46,7 @@ jobs:
         env:
           PGPASSWORD: testpassword
 
-      - name: Build and deploy service
+      - name: Build and Deploy
         run: |
           java -version
           gradle --version
@@ -53,12 +55,22 @@ jobs:
           ./gradlew --version
           ./gradlew build
 
-          docker run -d --network=host --name tomcat tomcat:latest
-          docker cp app/build/libs/app-1.0.war tomcat:/usr/local/tomcat/webapps/vss.war
-      - name: Run tests
+          docker cp app/build/libs/vss.war tomcat:/usr/local/tomcat/webapps/vss.war
+      - name: Hit endpoint to verify service is up
         run: |
-          curl --request POST --data-binary "s" http://localhost:8080/vss/getObject
+          # Wait for tomcat-startup
+          sleep 5
+
+          # Verify curl exits with error-code 0
+
+          # Put request with store='storeId' and key=k1
+          hex=0A0773746F726549641A150A026B3110FFFFFFFFFFFFFFFFFF011A046B317631
+          curl --data-binary "$(echo "$hex" | xxd -r -p)" http://localhost:8080/vss/putObjects
+
+          # Get request with store='storeId' and key=k1
+          hex=0A0773746F7265496412026B31
+          curl --data-binary "$(echo "$hex" | xxd -r -p)" http://localhost:8080/vss/getObject
 
       - name: Cleanup
         run: |
-          # Cleanup after tests if needed
+          docker stop tomcat && docker rm tomcat
